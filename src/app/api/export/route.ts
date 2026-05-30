@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     // Dynamic import of Sharp (server-side only)
     const sharp = (await import('sharp')).default;
 
-    let pipeline = sharp(imageBuffer).resize(width, height, {
+    const pipeline = sharp(imageBuffer).resize(width, height, {
       fit: 'contain',
       background: format === 'png' ? { r: 0, g: 0, b: 0, alpha: 0 } : { r: 255, g: 255, b: 255 },
     });

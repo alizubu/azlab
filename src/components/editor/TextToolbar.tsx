@@ -4,7 +4,7 @@ import React, { useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Bold, Italic, Underline, AlignLeft, AlignCenter,
-  AlignRight, AlignJustify, Type, Minus, Plus,
+  AlignRight, AlignJustify, Minus, Plus,
 } from 'lucide-react';
 import { useToolStore } from '@/store/toolStore';
 import { useCanvasStore } from '@/store/canvasStore';

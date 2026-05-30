@@ -70,7 +70,7 @@ export function FontUploader() {
               : u
           )
         );
-      } catch (err) {
+      } catch {
         setUploads((prev) =>
           prev.map((u) =>
             u.name === file.name

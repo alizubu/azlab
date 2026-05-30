@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import * as Tabs from '@radix-ui/react-tabs';
 import { FontUploader } from './FontUploader';
 import { useFontStore } from '@/store/fontStore';

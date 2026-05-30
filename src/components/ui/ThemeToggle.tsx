@@ -5,15 +5,17 @@ import { motion } from 'framer-motion';
 import { Sun, Moon } from 'lucide-react';
 
 export function ThemeToggle() {
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('azlab-theme') as 'dark' | 'light' | null;
+      if (stored) return stored;
+    }
+    return 'dark';
+  });
 
   useEffect(() => {
-    const stored = localStorage.getItem('azlab-theme') as 'dark' | 'light' | null;
-    if (stored) {
-      setTheme(stored);
-      document.documentElement.setAttribute('data-theme', stored);
-    }
-  }, []);
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
 
   const toggle = () => {
     const next = theme === 'dark' ? 'light' : 'dark';

@@ -39,7 +39,7 @@ export async function initFabricCanvas(options: FabricSetupOptions): Promise<Fab
   const canvas = new Canvas(options.canvasEl, {
     width: options.width,
     height: options.height,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#ffffff',   // white canvas so dark text is visible
     selection: true,
     preserveObjectStacking: true,
     renderOnAddRemove: true,
@@ -143,7 +143,7 @@ export async function addTextToCanvas(
     originY: 'center',
     fontFamily: 'Inter',
     fontSize: 48,
-    fill: '#ffffff',
+    fill: '#1a1a2e',          // dark by default — visible on white canvas
     fontWeight: 'normal',
     fontStyle: 'normal',
     textAlign: 'left',

@@ -18,7 +18,7 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Eye, EyeOff, Lock, Unlock, GripVertical, Trash2, Copy } from 'lucide-react';
+import { Eye, EyeOff, Lock, Unlock, GripVertical, Trash2 } from 'lucide-react';
 import { useCanvasStore, type CanvasObject } from '@/store/canvasStore';
 import { SectionHeader } from '@/components/ui/Panel';
 import { clsx } from 'clsx';

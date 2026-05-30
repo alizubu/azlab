@@ -5,27 +5,31 @@ import { motion } from 'framer-motion';
 import { Zap, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { CANVAS_PRESETS } from '@/store/projectStore';
-import { useProjectStore, type Project } from '@/store/projectStore';
+import { CANVAS_PRESETS, useProjectStore, type Project, type CanvasTemplate } from '@/store/projectStore';
 import { Button } from '@/components/ui/Button';
+
+function createProjectFromPreset(preset: CanvasTemplate): Project {
+  const id = crypto.randomUUID();
+  const now = Date.now();
+  return {
+    id,
+    name: preset.name,
+    createdAt: now,
+    updatedAt: now,
+    canvasWidth: preset.width,
+    canvasHeight: preset.height,
+    tags: [preset.category],
+  };
+}
 
 export default function TemplatesPage() {
   const router = useRouter();
   const { addProject } = useProjectStore();
 
-  const handleUseTemplate = (preset: typeof CANVAS_PRESETS[0]) => {
-    const id = crypto.randomUUID();
-    const project: Project = {
-      id,
-      name: preset.name,
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-      canvasWidth: preset.width,
-      canvasHeight: preset.height,
-      tags: [preset.category],
-    };
+  const handleUseTemplate = (preset: CanvasTemplate) => {
+    const project = createProjectFromPreset(preset);
     addProject(project);
-    router.push(`/editor/${id}`);
+    router.push(`/editor/${project.id}`);
   };
 
   const categories = [...new Set(CANVAS_PRESETS.map((p) => p.category))];

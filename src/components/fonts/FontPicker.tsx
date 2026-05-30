@@ -2,10 +2,9 @@
 
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Upload, X, ChevronDown } from 'lucide-react';
+import { Search, X, ChevronDown } from 'lucide-react';
 import Fuse from 'fuse.js';
 import { useFontStore, type FontMeta } from '@/store/fontStore';
-import { useToolStore } from '@/store/toolStore';
 import { loadGoogleFont } from '@/lib/fonts/fontLoader';
 import { clsx } from 'clsx';
 

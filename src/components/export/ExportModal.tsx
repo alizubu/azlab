@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { X, Download, Loader2 } from 'lucide-react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { useCanvasStore } from '@/store/canvasStore';
@@ -64,7 +64,7 @@ export function ExportModal({ open, onClose }: ExportModalProps) {
     } finally {
       setExporting(false);
     }
-  }, [fabricCanvas, format, quality, scale, filename, useCustomSize, customWidth, customHeight, canvasSize, onClose]);
+  }, [fabricCanvas, format, quality, scale, filename, useCustomSize, customWidth, canvasSize, onClose]);
 
   const formatSizes: Record<ExportScale, string> = {
     1: `${canvasSize.width}×${canvasSize.height}`,

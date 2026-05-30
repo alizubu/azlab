@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React from 'react';
+import { motion } from 'framer-motion';
 import {
-  MousePointer2, Type, Image, Layers, Download,
-  Undo2, Redo2, Sliders, ChevronUp,
+  MousePointer2, Type, Image as ImageIcon, Layers, Download,
+  Undo2, Redo2, Sliders,
 } from 'lucide-react';
 import { useToolStore, type ActiveTool } from '@/store/toolStore';
 import { useCanvasStore } from '@/store/canvasStore';
@@ -40,7 +40,7 @@ export function MobileToolbar({ onExport, onLayersToggle, onPropertiesToggle }: 
   const tools: { id: ActiveTool; icon: React.ReactNode; label: string }[] = [
     { id: 'select', icon: <MousePointer2 size={20} />, label: 'Select' },
     { id: 'text', icon: <Type size={20} />, label: 'Text' },
-    { id: 'image', icon: <Image size={20} />, label: 'Image' },
+    { id: 'image', icon: <ImageIcon size={20} />, label: 'Image' },
   ];
 
   return (

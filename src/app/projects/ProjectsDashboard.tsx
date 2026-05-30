@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Zap, Search, Trash2, Copy, Edit3, Clock, Grid, List } from 'lucide-react';
+import { Plus, Zap, Search, Trash2, Copy, Clock, Grid, List } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useProjectStore, CANVAS_PRESETS, type Project } from '@/store/projectStore';

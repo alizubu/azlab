@@ -4,14 +4,14 @@ import React, { useCallback, useEffect } from 'react';
 import {
   AlignLeft, AlignCenter, AlignRight, AlignJustify,
   Bold, Italic, Underline, Strikethrough,
-  ArrowLeftRight, Type,
+  ArrowLeftRight,
 } from 'lucide-react';
 import { useToolStore } from '@/store/toolStore';
 import { useCanvasStore } from '@/store/canvasStore';
 import { Slider } from '@/components/ui/Slider';
 import { ColorPicker } from '@/components/ui/ColorPicker';
 import { FontPicker } from '@/components/fonts/FontPicker';
-import { SectionHeader, AccordionSection } from '@/components/ui/Panel';
+import { SectionHeader } from '@/components/ui/Panel';
 import { IconButton } from '@/components/ui/Button';
 import { TextEffectsPanel } from './TextEffectsPanel';
 import { clsx } from 'clsx';

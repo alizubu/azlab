@@ -22,22 +22,18 @@ interface CanvasWorkspaceProps {
 export function CanvasWorkspace({ projectId }: CanvasWorkspaceProps) {
   const canvasElRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  // fabricRef holds the live Fabric.js canvas instance — never stored in React state
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const fabricRef = useRef<any>(null);
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const initDoneRef = useRef(false);
+  // Hidden file input for image upload
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
-    canvasSize,
-    zoom, setZoom,
-    panX, panY, setPan,
-    setFabricCanvas,
-    setSelectedIds,
-    addObject, removeObject,
-    pushHistory,
-    showGrid, gridSize,
-    showRulers,
+    canvasSize, zoom, setZoom, panX, panY, setPan,
+    setFabricCanvas, setSelectedIds,
+    addObject, removeObject, pushHistory,
+    showGrid, gridSize, showRulers,
   } = useCanvasStore();
 
   const { activeTool, textSettings } = useToolStore();
@@ -45,8 +41,24 @@ export function CanvasWorkspace({ projectId }: CanvasWorkspaceProps) {
 
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [guides, setGuides] = useState<{ type: 'h' | 'v'; pos: number }[]>([]);
+  const [guides] = useState<{ type: 'h' | 'v'; pos: number }[]>([]);
+
+  // ─── Auto-save ───────────────────────────────────────────────────────────────
+  const scheduleAutoSave = useCallback(() => {
+    if (!autoSaveEnabled) return;
+    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    autoSaveTimerRef.current = setTimeout(() => {
+      if (!fabricRef.current) return;
+      try {
+        saveDraft(projectId, serializeCanvas(fabricRef.current), {
+          projectId,
+          canvasWidth: canvasSize.width,
+          canvasHeight: canvasSize.height,
+          projectName: currentProject?.name ?? 'Untitled',
+        });
+      } catch { /* ignore */ }
+    }, 30_000);
+  }, [autoSaveEnabled, projectId, canvasSize, currentProject]);
 
   // ─── Init Fabric once ────────────────────────────────────────────────────────
   useEffect(() => {
@@ -72,7 +84,6 @@ export function CanvasWorkspace({ projectId }: CanvasWorkspaceProps) {
 
         fabricRef.current = fc;
         initDoneRef.current = true;
-        // Share with store so other components (layers, export) can access it
         setFabricCanvas(fc);
         pushHistory('Canvas created', serializeCanvas(fc));
       } catch (err) {
@@ -91,13 +102,13 @@ export function CanvasWorkspace({ projectId }: CanvasWorkspaceProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ─── Resize when canvasSize changes ─────────────────────────────────────────
+  // ─── Resize canvas ───────────────────────────────────────────────────────────
   useEffect(() => {
     if (!fabricRef.current) return;
     resizeFabricCanvas(fabricRef.current, canvasSize.width, canvasSize.height);
   }, [canvasSize.width, canvasSize.height]);
 
-  // ─── Fit to screen after init ────────────────────────────────────────────────
+  // ─── Fit to screen ───────────────────────────────────────────────────────────
   const fitToScreen = useCallback(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -116,40 +127,40 @@ export function CanvasWorkspace({ projectId }: CanvasWorkspaceProps) {
   }, [canvasSize.width, canvasSize.height, setZoom, setPan]);
 
   useEffect(() => {
-    // Wait a tick for the container to have its final size
     const t = setTimeout(fitToScreen, 150);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ─── Auto-save ───────────────────────────────────────────────────────────────
-  const scheduleAutoSave = useCallback(() => {
-    if (!autoSaveEnabled) return;
-    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
-    autoSaveTimerRef.current = setTimeout(() => {
-      if (!fabricRef.current) return;
+  // ─── Image upload handler ────────────────────────────────────────────────────
+  const handleImageFiles = useCallback(async (files: FileList | File[]) => {
+    const fc = fabricRef.current;
+    if (!fc) return;
+    for (const file of Array.from(files)) {
+      if (!file.type.startsWith('image/')) continue;
       try {
-        saveDraft(projectId, serializeCanvas(fabricRef.current), {
-          projectId,
-          canvasWidth: canvasSize.width,
-          canvasHeight: canvasSize.height,
-          projectName: currentProject?.name ?? 'Untitled',
+        const img = await addImageToCanvas(fc, file);
+        addObject({
+          id: img.get('id') as string, type: 'image',
+          name: file.name, visible: true, locked: false, opacity: 100, blendMode: 'normal',
         });
       } catch { /* ignore */ }
-    }, 30_000);
-  }, [autoSaveEnabled, projectId, canvasSize, currentProject]);
+    }
+    pushHistory('Add image', serializeCanvas(fc));
+    setDirty(true);
+    // Switch back to select after adding image
+    useToolStore.getState().setActiveTool('select');
+  }, [addObject, pushHistory, setDirty]);
 
   // ─── Keyboard shortcuts ──────────────────────────────────────────────────────
   useEffect(() => {
     const onKey = async (e: KeyboardEvent) => {
       const fc = fabricRef.current;
-      if (!fc) return;
       const tag = (e.target as HTMLElement)?.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA') return;
-
       const ctrl = e.ctrlKey || e.metaKey;
 
-      if ((e.key === 'Delete' || e.key === 'Backspace')) {
+      if (fc && (e.key === 'Delete' || e.key === 'Backspace')) {
         const active = fc.getActiveObject();
         if (active) {
           const id = active.get('id') as string;
@@ -158,7 +169,7 @@ export function CanvasWorkspace({ projectId }: CanvasWorkspaceProps) {
           pushHistory('Delete', serializeCanvas(fc));
         }
       }
-      if (ctrl && e.key === 'd') {
+      if (fc && ctrl && e.key === 'd') {
         e.preventDefault();
         const active = fc.getActiveObject();
         if (active) {
@@ -175,7 +186,7 @@ export function CanvasWorkspace({ projectId }: CanvasWorkspaceProps) {
       if (ctrl && e.key === '1') { e.preventDefault(); setZoom(1); setPan(0, 0); }
       if (!ctrl && e.key === 'v') useToolStore.getState().setActiveTool('select');
       if (!ctrl && e.key === 't') useToolStore.getState().setActiveTool('text');
-      if (!ctrl && e.key === 'i') useToolStore.getState().setActiveTool('image');
+      if (!ctrl && e.key === 'i') { fileInputRef.current?.click(); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -197,7 +208,7 @@ export function CanvasWorkspace({ projectId }: CanvasWorkspaceProps) {
     return () => el.removeEventListener('wheel', onWheel);
   }, [zoom, panX, panY, setZoom, setPan]);
 
-  // ─── Pan drag ────────────────────────────────────────────────────────────────
+  // ─── Pan drag (middle-click or pan tool) ─────────────────────────────────────
   const onMouseDown = useCallback((e: React.MouseEvent) => {
     if (e.button === 1 || (e.button === 0 && activeTool === 'pan')) {
       setIsDragging(true);
@@ -212,20 +223,36 @@ export function CanvasWorkspace({ projectId }: CanvasWorkspaceProps) {
 
   const onMouseUp = useCallback(() => setIsDragging(false), []);
 
-  // ─── Click to add text ───────────────────────────────────────────────────────
-  const onCanvasClick = useCallback(async (e: React.MouseEvent<HTMLDivElement>) => {
+  // ─── Canvas click — only fires for text/image tool on empty area ─────────────
+  // IMPORTANT: We only intercept clicks when a creation tool is active.
+  // For 'select' tool, Fabric.js handles all events natively.
+  const onCanvasAreaClick = useCallback(async (e: React.MouseEvent<HTMLDivElement>) => {
     const fc = fabricRef.current;
-    if (!fc || activeTool !== 'text') return;
-    const rect = containerRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    const x = (e.clientX - rect.left - panX) / zoom;
-    const y = (e.clientY - rect.top - panY) / zoom;
+    if (!fc) return;
+
+    if (activeTool === 'image') {
+      fileInputRef.current?.click();
+      return;
+    }
+
+    if (activeTool !== 'text') return;
+
+    // Don't create text if user clicked on an existing Fabric object
+    // Fabric fires its own events; we only want clicks on empty canvas space
+    const target = fc.findTarget(e.nativeEvent);
+    if (target) return;
+
+    const rulerOffset = showRulers ? 24 : 0;
+    const rect = containerRef.current!.getBoundingClientRect();
+    const x = (e.clientX - rect.left - rulerOffset - panX) / zoom;
+    const y = (e.clientY - rect.top - rulerOffset - panY) / zoom;
 
     const obj = await addTextToCanvas(fc, 'Double-click to edit', {
       left: x, top: y, originX: 'left', originY: 'top',
       fontFamily: textSettings.fontFamily,
       fontSize: textSettings.fontSize,
-      fill: textSettings.color,
+      // Use dark color so text is visible on white canvas
+      fill: textSettings.color === '#ffffff' ? '#1a1a2e' : textSettings.color,
       fontWeight: textSettings.fontStyle.includes('bold') ? 'bold' : 'normal',
       fontStyle: textSettings.fontStyle.includes('italic') ? 'italic' : 'normal',
       textAlign: textSettings.textAlign,
@@ -233,28 +260,30 @@ export function CanvasWorkspace({ projectId }: CanvasWorkspaceProps) {
       charSpacing: textSettings.letterSpacing * 10,
     });
 
-    addObject({ id: obj.get('id') as string, type: 'text', name: 'Text Layer', visible: true, locked: false, opacity: 100, blendMode: 'normal' });
+    addObject({
+      id: obj.get('id') as string, type: 'text',
+      name: 'Text Layer', visible: true, locked: false, opacity: 100, blendMode: 'normal',
+    });
     pushHistory('Add text', serializeCanvas(fc));
     setDirty(true);
-  }, [activeTool, panX, panY, zoom, textSettings, addObject, pushHistory, setDirty]);
+    // Switch to select so user can immediately move the text
+    useToolStore.getState().setActiveTool('select');
+  }, [activeTool, panX, panY, zoom, showRulers, textSettings, addObject, pushHistory, setDirty]);
 
   // ─── Drop image ──────────────────────────────────────────────────────────────
   const onDrop = useCallback(async (e: React.DragEvent) => {
     e.preventDefault();
-    const fc = fabricRef.current;
-    if (!fc) return;
     const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
-    for (const file of files) {
-      try {
-        const img = await addImageToCanvas(fc, file);
-        addObject({ id: img.get('id') as string, type: 'image', name: file.name, visible: true, locked: false, opacity: 100, blendMode: 'normal' });
-      } catch { /* ignore */ }
-    }
-    if (files.length) pushHistory('Add image', serializeCanvas(fc));
-  }, [addObject, pushHistory]);
+    if (files.length) await handleImageFiles(files);
+  }, [handleImageFiles]);
 
-  // ─── Render ──────────────────────────────────────────────────────────────────
-  const cursor = activeTool === 'pan' || isDragging ? 'grab' : activeTool === 'text' ? 'text' : 'default';
+  // ─── Cursor style ────────────────────────────────────────────────────────────
+  const cursor =
+    isDragging ? 'grabbing' :
+    activeTool === 'pan' ? 'grab' :
+    activeTool === 'text' ? 'text' :
+    activeTool === 'image' ? 'copy' :
+    'default';
 
   return (
     <div
@@ -265,11 +294,21 @@ export function CanvasWorkspace({ projectId }: CanvasWorkspaceProps) {
       onMouseMove={onMouseMove}
       onMouseUp={onMouseUp}
       onMouseLeave={onMouseUp}
-      onClick={onCanvasClick}
+      onClick={onCanvasAreaClick}
       onDrop={onDrop}
       onDragOver={e => e.preventDefault()}
     >
-      {/* Grid */}
+      {/* Hidden file input for image upload */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        className="hidden"
+        onChange={e => { if (e.target.files) handleImageFiles(e.target.files); e.target.value = ''; }}
+      />
+
+      {/* Grid overlay */}
       {showGrid && (
         <div
           className="absolute inset-0 pointer-events-none"
@@ -315,7 +354,7 @@ export function CanvasWorkspace({ projectId }: CanvasWorkspaceProps) {
         </>
       )}
 
-      {/* Fabric canvas wrapper */}
+      {/* Fabric canvas — positioned with transform for zoom/pan */}
       <div
         className="absolute"
         style={{
@@ -325,9 +364,10 @@ export function CanvasWorkspace({ projectId }: CanvasWorkspaceProps) {
           top: showRulers ? 24 : 0,
         }}
       >
+        {/* Drop shadow behind canvas */}
         <div
           className="absolute inset-0"
-          style={{ boxShadow: '0 8px 64px rgba(0,0,0,0.6)', pointerEvents: 'none' }}
+          style={{ boxShadow: '0 8px 64px rgba(0,0,0,0.6)', pointerEvents: 'none', zIndex: -1 }}
         />
         <canvas ref={canvasElRef} />
       </div>

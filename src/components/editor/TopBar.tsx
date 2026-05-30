@@ -22,7 +22,7 @@ interface TopBarProps {
 }
 
 export function TopBar({ projectId }: TopBarProps) {
-  const { fabricCanvas, history, historyIndex, pushHistory, canvasSize } = useCanvasStore();
+  const { fabricCanvas, history, historyIndex, canvasSize } = useCanvasStore();
   const { currentProject, updateProject, isDirty, setLastSaved } = useProjectStore();
   const [exportOpen, setExportOpen] = useState(false);
   const [canvasSizeOpen, setCanvasSizeOpen] = useState(false);
