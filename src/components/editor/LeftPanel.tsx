@@ -14,8 +14,6 @@ interface LeftPanelProps {
   onClose: () => void;
 }
 
-const PANEL_WIDTH = 240;
-
 export function LeftPanel({ activePanel, onClose }: LeftPanelProps) {
   return (
     <AnimatePresence>
@@ -23,22 +21,22 @@ export function LeftPanel({ activePanel, onClose }: LeftPanelProps) {
         <motion.div
           key={activePanel}
           initial={{ width: 0, opacity: 0 }}
-          animate={{ width: PANEL_WIDTH, opacity: 1 }}
+          animate={{ width: 240, opacity: 1 }}
           exit={{ width: 0, opacity: 0 }}
-          transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-          className="flex flex-col h-full glass-strong border-r border-[var(--border)] overflow-hidden shrink-0 z-10"
-          style={{ width: PANEL_WIDTH }}
+          transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+          className="relative flex flex-col glass-strong border-r border-[var(--border)] overflow-hidden shrink-0"
+          style={{ width: 240, minHeight: 0 }}
         >
-          <div className="flex flex-col h-full overflow-hidden relative">
-            {/* Close button */}
-            <div className="absolute top-2 right-2 z-10">
-              <IconButton icon={<X size={12} />} onClick={onClose} size="xs" tooltip="Close panel" />
-            </div>
+          {/* Close button */}
+          <div className="absolute top-2 right-2 z-10">
+            <IconButton icon={<X size={12} />} onClick={onClose} size="xs" tooltip="Close" />
+          </div>
 
-            {activePanel === 'layers' && <LayersPanel />}
-            {activePanel === 'fonts' && <FontLibrary />}
+          <div className="flex flex-col h-full overflow-hidden">
+            {activePanel === 'layers'  && <LayersPanel />}
+            {activePanel === 'fonts'   && <FontLibrary />}
             {activePanel === 'history' && <HistoryPanel />}
-            {activePanel === 'assets' && <AssetsPanel />}
+            {activePanel === 'assets'  && <AssetsPanel />}
           </div>
         </motion.div>
       )}

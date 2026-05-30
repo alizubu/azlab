@@ -3,13 +3,14 @@
 import React, { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import {
-  Undo2, Redo2, Download, Save, ChevronLeft,
+  Undo2, Redo2, Download, Save, LayoutGrid,
   Zap, Maximize2,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useCanvasStore } from '@/store/canvasStore';
 import { useProjectStore } from '@/store/projectStore';
 import { Button, IconButton } from '@/components/ui/Button';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { ExportModal } from '@/components/export/ExportModal';
 import { CanvasSizeDialog } from './CanvasSizeDialog';
 import { serializeCanvas } from '@/lib/canvas/fabricSetup';
@@ -64,7 +65,7 @@ export function TopBar({ projectId }: TopBarProps) {
       });
       updateProject(projectId, { canvasJSON: json, updatedAt: Date.now() });
       setLastSaved(Date.now());
-      toast.success('Saved successfully');
+      toast.success('Saved');
     } catch {
       toast.error('Save failed');
     } finally {
@@ -85,20 +86,19 @@ export function TopBar({ projectId }: TopBarProps) {
         transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
         className="flex items-center justify-between px-3 h-12 glass-strong border-b border-[var(--border)] shrink-0 z-30"
       >
-        {/* Left: Back + Project name */}
+        {/* Left: Logo + Project name */}
         <div className="flex items-center gap-2 min-w-0">
-          <Link href="/projects">
-            <IconButton icon={<ChevronLeft size={16} />} tooltip="Back to Projects" size="sm" />
-          </Link>
-
-          <div className="flex items-center gap-1.5">
-            {/* AZLab logo */}
-            <div className="flex items-center gap-1.5 mr-1">
-              <div className="w-6 h-6 rounded-md bg-gradient-to-br from-[var(--accent-primary)] to-[var(--accent-secondary)] flex items-center justify-center">
-                <Zap size={12} className="text-white" />
-              </div>
+          {/* AZLab logo */}
+          <div className="flex items-center gap-1.5 shrink-0">
+            <div className="w-6 h-6 rounded-md bg-gradient-to-br from-[var(--accent-primary)] to-[var(--accent-secondary)] flex items-center justify-center">
+              <Zap size={12} className="text-white" />
             </div>
+            <span className="text-sm font-bold gradient-text hidden sm:block">AZLab</span>
+          </div>
 
+          <div className="w-px h-4 bg-[var(--border)] mx-0.5" />
+
+          <div className="flex items-center gap-1.5 min-w-0">
             {editingName ? (
               <input
                 autoFocus
@@ -114,7 +114,8 @@ export function TopBar({ projectId }: TopBarProps) {
             ) : (
               <button
                 onClick={() => setEditingName(true)}
-                className="text-sm font-medium text-[var(--text-primary)] hover:text-[var(--accent-primary)] transition-colors truncate max-w-48"
+                className="text-sm font-medium text-[var(--text-primary)] hover:text-[var(--accent-primary)] transition-colors truncate max-w-40"
+                title="Click to rename"
               >
                 {nameValue}
               </button>
@@ -142,7 +143,7 @@ export function TopBar({ projectId }: TopBarProps) {
             disabled={!canRedo}
             size="sm"
           />
-          <div className="w-px h-5 bg-[var(--border)] mx-1" />
+          <div className="w-px h-4 bg-[var(--border)] mx-1" />
           <button
             onClick={() => setCanvasSizeOpen(true)}
             className="flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-panel)] transition-colors"
@@ -152,8 +153,13 @@ export function TopBar({ projectId }: TopBarProps) {
           </button>
         </div>
 
-        {/* Right: Save + Export */}
+        {/* Right: Theme + Projects + Save + Export */}
         <div className="flex items-center gap-1.5">
+          <ThemeToggle />
+          <div className="w-px h-4 bg-[var(--border)]" />
+          <Link href="/projects">
+            <IconButton icon={<LayoutGrid size={14} />} tooltip="Projects" size="sm" />
+          </Link>
           <Button
             variant="ghost"
             size="sm"

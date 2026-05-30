@@ -52,7 +52,7 @@ export function ProjectsDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--bg-base)]" data-theme="dark">
+    <div className="min-h-screen bg-[var(--bg-base)]">
       {/* Header */}
       <header className="border-b border-[var(--border)] glass-strong sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">

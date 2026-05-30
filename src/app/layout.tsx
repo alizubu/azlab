@@ -7,9 +7,7 @@ export const metadata: Metadata = {
   title: 'AZLab — Creative Design Studio',
   description: 'Professional creative design tool for social media, typography, and graphic design.',
   manifest: '/manifest.json',
-  icons: {
-    icon: '/favicon.ico',
-  },
+  icons: { icon: '/favicon.ico' },
 };
 
 export const viewport: Viewport = {
@@ -19,13 +17,9 @@ export const viewport: Viewport = {
   themeColor: '#0a0a0f',
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" data-theme="dark" className="h-full">
+    <html lang="en" data-theme="dark">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -34,7 +28,7 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="h-full overflow-hidden">
+      <body>
         <Providers>
           <ServiceWorkerRegistrar />
           {children}

@@ -11,120 +11,105 @@ import { ExportModal } from '@/components/export/ExportModal';
 import { TextToolbar } from '@/components/editor/TextToolbar';
 import { MobileToolbar } from '@/components/editor/MobileToolbar';
 import { useProjectStore } from '@/store/projectStore';
+import { useCanvasStore } from '@/store/canvasStore';
 import { restoreUploadedFonts } from '@/lib/fonts/fontLoader';
 import { useFontStore } from '@/store/fontStore';
+import { loadDraft } from '@/lib/canvas/canvasSerialization';
 
-interface EditorClientProps {
-  projectId: string;
-}
+interface EditorClientProps { projectId: string }
 
 export function EditorClient({ projectId }: EditorClientProps) {
-  const [activePanel, setActivePanel] = useState<string | null>('layers');
-  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
-  const [exportOpen, setExportOpen] = useState(false);
+  const [activePanel,          setActivePanel]          = useState<string | null>('layers');
+  const [commandPaletteOpen,   setCommandPaletteOpen]   = useState(false);
+  const [exportOpen,           setExportOpen]           = useState(false);
   const { setCurrentProject, addProject } = useProjectStore();
   const { addUploadedFont } = useFontStore();
+  const { setCanvasSize } = useCanvasStore();
 
-  // Initialize project
+  // Init project record — restore name/size from draft if available
   useEffect(() => {
-    const existing = useProjectStore.getState().projects.find((p) => p.id === projectId);
+    const existing = useProjectStore.getState().projects.find(p => p.id === projectId);
     if (!existing) {
-      const newProject = {
+      const draft = loadDraft(projectId);
+      const p = {
         id: projectId,
-        name: 'Untitled Design',
+        name: draft?.meta.projectName ?? 'Untitled Design',
         createdAt: Date.now(),
         updatedAt: Date.now(),
-        canvasWidth: 1080,
-        canvasHeight: 1080,
+        canvasWidth:  draft?.meta.canvasWidth  ?? 1080,
+        canvasHeight: draft?.meta.canvasHeight ?? 1080,
         tags: [],
       };
-      addProject(newProject);
-      setCurrentProject(newProject);
+      addProject(p);
+      setCurrentProject(p);
+      if (draft) {
+        setCanvasSize({ width: draft.meta.canvasWidth, height: draft.meta.canvasHeight });
+      }
     } else {
       setCurrentProject(existing);
     }
-  }, [projectId, addProject, setCurrentProject]);
+  }, [projectId, addProject, setCurrentProject, setCanvasSize]);
 
-  // Restore uploaded fonts from IndexedDB
+  // Restore uploaded fonts
   useEffect(() => {
-    restoreUploadedFonts().then((fonts) => {
-      fonts.forEach((font) => {
-        addUploadedFont({
-          family: font.family,
-          style: font.style,
-          weight: font.weight,
-          source: 'uploaded',
-          scripts: font.scripts,
-          category: font.category as 'serif' | 'sans-serif' | 'display' | 'handwriting' | 'monospace',
-          loaded: true,
-          uploadedId: String(font.id),
-        });
-      });
-    }).catch(() => {
-      // IndexedDB not available (SSR or private browsing)
-    });
+    restoreUploadedFonts().then(fonts => {
+      fonts.forEach(font => addUploadedFont({
+        family: font.family, style: font.style, weight: font.weight,
+        source: 'uploaded', scripts: font.scripts,
+        category: font.category as 'serif' | 'sans-serif' | 'display' | 'handwriting' | 'monospace',
+        loaded: true, uploadedId: String(font.id),
+      }));
+    }).catch(() => {});
   }, [addUploadedFont]);
 
-  // Command palette keyboard shortcut
+  // Global keyboard shortcuts
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-        e.preventDefault();
-        setCommandPaletteOpen((o) => !o);
-      }
-      if ((e.ctrlKey || e.metaKey) && e.key === 'e') {
-        e.preventDefault();
-        setExportOpen(true);
-      }
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); setCommandPaletteOpen(o => !o); }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'e') { e.preventDefault(); setExportOpen(true); }
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
   }, []);
 
   const handlePanelToggle = useCallback((panel: string) => {
-    setActivePanel((current) => current === panel ? null : panel);
-  }, []);
-
-  const handleSave = useCallback(() => {
-    // Trigger save via TopBar's save logic
-    const saveBtn = document.querySelector('[data-save-btn]') as HTMLButtonElement;
-    saveBtn?.click();
+    setActivePanel(cur => cur === panel ? null : panel);
   }, []);
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-[var(--bg-base)]" data-theme="dark">
+    <div
+      className="flex flex-col overflow-hidden bg-[var(--bg-base)]"
+      style={{ height: '100dvh' }}
+    >
       {/* Top bar */}
       <TopBar projectId={projectId} />
 
-      {/* Main editor area */}
-      <div className="flex flex-1 overflow-hidden relative">
+      {/* Editor body */}
+      <div className="flex overflow-hidden" style={{ flex: '1 1 0', minHeight: 0 }}>
+
         {/* Left toolbar */}
         <LeftToolbar activePanel={activePanel} onPanelToggle={handlePanelToggle} />
 
-        {/* Left panel (layers, fonts, etc.) */}
-        <div className="relative flex h-full">
-          <LeftPanel activePanel={activePanel} onClose={() => setActivePanel(null)} />
-        </div>
+        {/* Left panel (layers / fonts / assets / history) */}
+        <LeftPanel activePanel={activePanel} onClose={() => setActivePanel(null)} />
 
-        {/* Canvas + floating toolbar */}
-        <div className="relative flex-1 overflow-hidden">
+        {/* Canvas area */}
+        <div className="relative flex flex-col overflow-hidden" style={{ flex: '1 1 0', minWidth: 0 }}>
           <TextToolbar />
           <CanvasWorkspace projectId={projectId} />
         </div>
 
-        {/* Right panel (typography, image adjustments) */}
+        {/* Right panel (typography / image) */}
         <RightPanel />
       </div>
 
-      {/* Command palette */}
+      {/* Modals & overlays */}
       <CommandPalette
         open={commandPaletteOpen}
         onClose={() => setCommandPaletteOpen(false)}
         onExport={() => setExportOpen(true)}
-        onSave={handleSave}
+        onSave={() => {}}
       />
-
-      {/* Export modal */}
       <ExportModal open={exportOpen} onClose={() => setExportOpen(false)} />
 
       {/* Mobile bottom toolbar */}
