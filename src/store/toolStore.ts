@@ -4,13 +4,7 @@ import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 
 export type ActiveTool =
-  | 'select'
-  | 'text'
-  | 'image'
-  | 'shape'
-  | 'crop'
-  | 'pan'
-  | 'eyedropper';
+  | 'select' | 'text' | 'image' | 'shape' | 'crop' | 'pan' | 'eyedropper';
 
 export type TextAlign = 'left' | 'center' | 'right' | 'justify';
 export type TextDirection = 'ltr' | 'rtl';
@@ -30,7 +24,7 @@ export interface TextShadow {
 export interface GradientStop {
   id: string;
   color: string;
-  position: number; // 0-100
+  position: number;
 }
 
 export interface TextStroke {
@@ -57,7 +51,7 @@ export interface TextEffects {
 
 export interface TextSettings {
   fontFamily: string;
-  fontStyle: string; // 'normal', 'bold', 'italic', 'bold italic'
+  fontStyle: string;
   fontSize: number;
   lineHeight: number;
   letterSpacing: number;
@@ -128,88 +122,48 @@ export const useToolStore = create<ToolState>()(
       verticalAlign: 'top',
       textTransform: 'none',
       textDecoration: 'none',
-      color: '#ffffff',
+      color: '#1a1a2e',   // dark default — visible on white canvas
       opacity: 100,
       effects: defaultEffects,
     },
 
-    setActiveTool: (tool) =>
-      set((state) => { state.activeTool = tool; }),
+    setActiveTool: (tool) => set((state) => { state.activeTool = tool; }),
+    updateTextSettings: (updates) => set((state) => { Object.assign(state.textSettings, updates); }),
+    updateTextEffects: (updates) => set((state) => { Object.assign(state.textSettings.effects, updates); }),
 
-    updateTextSettings: (updates) =>
-      set((state) => { Object.assign(state.textSettings, updates); }),
+    addShadow: () => set((state) => {
+      state.textSettings.effects.shadows.push({ id: crypto.randomUUID(), color: 'rgba(0,0,0,0.5)', x: 2, y: 2, blur: 4, spread: 0 });
+    }),
+    removeShadow: (id) => set((state) => {
+      state.textSettings.effects.shadows = state.textSettings.effects.shadows.filter(s => s.id !== id);
+    }),
+    updateShadow: (id, updates) => set((state) => {
+      const s = state.textSettings.effects.shadows.find(s => s.id === id);
+      if (s) Object.assign(s, updates);
+    }),
 
-    updateTextEffects: (updates) =>
-      set((state) => { Object.assign(state.textSettings.effects, updates); }),
+    addStroke: () => set((state) => {
+      state.textSettings.effects.strokes.push({ id: crypto.randomUUID(), color: '#000000', width: 2, position: 'outside' });
+    }),
+    removeStroke: (id) => set((state) => {
+      state.textSettings.effects.strokes = state.textSettings.effects.strokes.filter(s => s.id !== id);
+    }),
+    updateStroke: (id, updates) => set((state) => {
+      const s = state.textSettings.effects.strokes.find(s => s.id === id);
+      if (s) Object.assign(s, updates);
+    }),
 
-    addShadow: () =>
-      set((state) => {
-        state.textSettings.effects.shadows.push({
-          id: crypto.randomUUID(),
-          color: 'rgba(0,0,0,0.5)',
-          x: 2,
-          y: 2,
-          blur: 4,
-          spread: 0,
-        });
-      }),
+    addGradientStop: () => set((state) => {
+      state.textSettings.effects.gradientFill.stops.push({ id: crypto.randomUUID(), color: '#ffffff', position: 50 });
+    }),
+    removeGradientStop: (id) => set((state) => {
+      state.textSettings.effects.gradientFill.stops = state.textSettings.effects.gradientFill.stops.filter(s => s.id !== id);
+    }),
+    updateGradientStop: (id, updates) => set((state) => {
+      const s = state.textSettings.effects.gradientFill.stops.find(s => s.id === id);
+      if (s) Object.assign(s, updates);
+    }),
 
-    removeShadow: (id) =>
-      set((state) => {
-        state.textSettings.effects.shadows =
-          state.textSettings.effects.shadows.filter((s) => s.id !== id);
-      }),
-
-    updateShadow: (id, updates) =>
-      set((state) => {
-        const shadow = state.textSettings.effects.shadows.find((s) => s.id === id);
-        if (shadow) Object.assign(shadow, updates);
-      }),
-
-    addStroke: () =>
-      set((state) => {
-        state.textSettings.effects.strokes.push({
-          id: crypto.randomUUID(),
-          color: '#ffffff',
-          width: 2,
-          position: 'outside',
-        });
-      }),
-
-    removeStroke: (id) =>
-      set((state) => {
-        state.textSettings.effects.strokes =
-          state.textSettings.effects.strokes.filter((s) => s.id !== id);
-      }),
-
-    updateStroke: (id, updates) =>
-      set((state) => {
-        const stroke = state.textSettings.effects.strokes.find((s) => s.id === id);
-        if (stroke) Object.assign(stroke, updates);
-      }),
-
-    addGradientStop: () =>
-      set((state) => {
-        state.textSettings.effects.gradientFill.stops.push({
-          id: crypto.randomUUID(),
-          color: '#ffffff',
-          position: 50,
-        });
-      }),
-
-    removeGradientStop: (id) =>
-      set((state) => {
-        state.textSettings.effects.gradientFill.stops =
-          state.textSettings.effects.gradientFill.stops.filter((s) => s.id !== id);
-      }),
-
-    updateGradientStop: (id, updates) =>
-      set((state) => {
-        const stop = state.textSettings.effects.gradientFill.stops.find((s) => s.id === id);
-        if (stop) Object.assign(stop, updates);
-      }),
-
-    toggleTextEffects: () =>
-      set((state) => { state.showTextEffects = !state.showTextEffects; }),
+    toggleTextEffects: () => set((state) => { state.showTextEffects = !state.showTextEffects; }),
   }))
 );

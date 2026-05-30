@@ -4,8 +4,7 @@ import React, { useRef } from 'react';
 import { motion } from 'framer-motion';
 import {
   MousePointer2, Type, ImagePlus, Square, Hand,
-  Layers, Type as FontIcon, Package, History,
-  Plus,
+  Layers, Type as FontIcon, Package, History, Plus,
 } from 'lucide-react';
 import { useToolStore, type ActiveTool } from '@/store/toolStore';
 import { useCanvasStore } from '@/store/canvasStore';
@@ -19,22 +18,21 @@ interface ToolItem {
   icon: React.ReactNode;
   label: string;
   shortcut?: string;
-  isPanel?: boolean;
 }
 
 const tools: ToolItem[] = [
-  { id: 'select',     icon: <MousePointer2 size={18} />, label: 'Select',    shortcut: 'V' },
-  { id: 'text',       icon: <Type size={18} />,          label: 'Text',      shortcut: 'T' },
-  { id: 'image',      icon: <ImagePlus size={18} />,     label: 'Image',     shortcut: 'I' },
-  { id: 'shape',      icon: <Square size={18} />,        label: 'Shape' },
-  { id: 'pan',        icon: <Hand size={18} />,          label: 'Pan',       shortcut: 'Space' },
+  { id: 'select', icon: <MousePointer2 size={18} />, label: 'Select',  shortcut: 'V' },
+  { id: 'text',   icon: <Type size={18} />,          label: 'Text',    shortcut: 'T' },
+  { id: 'image',  icon: <ImagePlus size={18} />,     label: 'Image',   shortcut: 'I' },
+  { id: 'shape',  icon: <Square size={18} />,        label: 'Shape' },
+  { id: 'pan',    icon: <Hand size={18} />,          label: 'Pan',     shortcut: 'Space' },
 ];
 
 const panels: ToolItem[] = [
-  { id: 'layers',  icon: <Layers size={18} />,   label: 'Layers',  isPanel: true },
-  { id: 'fonts',   icon: <FontIcon size={18} />, label: 'Fonts',   isPanel: true },
-  { id: 'assets',  icon: <Package size={18} />,  label: 'Assets',  isPanel: true },
-  { id: 'history', icon: <History size={18} />,  label: 'History', isPanel: true },
+  { id: 'layers',  icon: <Layers size={18} />,   label: 'Layers' },
+  { id: 'fonts',   icon: <FontIcon size={18} />, label: 'Fonts' },
+  { id: 'assets',  icon: <Package size={18} />,  label: 'Assets' },
+  { id: 'history', icon: <History size={18} />,  label: 'History' },
 ];
 
 interface LeftToolbarProps {
@@ -48,9 +46,12 @@ export function LeftToolbar({ activePanel, onPanelToggle }: LeftToolbarProps) {
   const { setDirty } = useProjectStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Quick-add text directly from toolbar button
+  // ── Quick-add text to canvas centre ────────────────────────────────────────
   const handleAddText = async () => {
-    if (!fabricCanvas) { setActiveTool('text'); return; }
+    if (!fabricCanvas) {
+      setActiveTool('text');
+      return;
+    }
     const obj = await addTextToCanvas(fabricCanvas, 'Double-click to edit', {
       left: fabricCanvas.width / 2,
       top: fabricCanvas.height / 2,
@@ -69,8 +70,8 @@ export function LeftToolbar({ activePanel, onPanelToggle }: LeftToolbarProps) {
     setActiveTool('select');
   };
 
-  // Quick-add image from file picker
-  const handleAddImage = async (files: FileList | null) => {
+  // ── Add image from file picker ──────────────────────────────────────────────
+  const handleImageFiles = async (files: FileList | null) => {
     if (!files || !fabricCanvas) return;
     for (const file of Array.from(files)) {
       if (!file.type.startsWith('image/')) continue;
@@ -88,9 +89,7 @@ export function LeftToolbar({ activePanel, onPanelToggle }: LeftToolbarProps) {
   };
 
   const handleToolClick = (id: string) => {
-    if (id === 'text') {
-      setActiveTool('text');
-    } else if (id === 'image') {
+    if (id === 'image') {
       fileInputRef.current?.click();
     } else {
       setActiveTool(id as ActiveTool);
@@ -112,10 +111,10 @@ export function LeftToolbar({ activePanel, onPanelToggle }: LeftToolbarProps) {
           accept="image/*"
           multiple
           className="hidden"
-          onChange={e => { handleAddImage(e.target.files); e.target.value = ''; }}
+          onChange={e => { handleImageFiles(e.target.files); e.target.value = ''; }}
         />
 
-        {/* Quick-add buttons */}
+        {/* ── Quick Add Text button ── */}
         <Tooltip.Root>
           <Tooltip.Trigger asChild>
             <motion.button
@@ -129,7 +128,7 @@ export function LeftToolbar({ activePanel, onPanelToggle }: LeftToolbarProps) {
           </Tooltip.Trigger>
           <Tooltip.Portal>
             <Tooltip.Content side="right" className="glass px-2.5 py-1.5 rounded-lg text-xs text-[var(--text-primary)] shadow-xl z-[9999]" sideOffset={8}>
-              Add Text <kbd className="ml-1 text-[10px] bg-[var(--bg-panel)] px-1 py-0.5 rounded">T</kbd>
+              Add Text
               <Tooltip.Arrow className="fill-[rgba(19,19,26,0.9)]" />
             </Tooltip.Content>
           </Tooltip.Portal>
@@ -137,10 +136,10 @@ export function LeftToolbar({ activePanel, onPanelToggle }: LeftToolbarProps) {
 
         <div className="w-8 h-px bg-[var(--border)] mb-1" />
 
-        {/* Tools */}
+        {/* ── Tool buttons ── */}
         <div className="flex flex-col gap-1 w-full">
-          {tools.map((tool) => (
-            <ToolButton
+          {tools.map(tool => (
+            <ToolBtn
               key={tool.id}
               tool={tool}
               active={activeTool === tool.id}
@@ -151,10 +150,10 @@ export function LeftToolbar({ activePanel, onPanelToggle }: LeftToolbarProps) {
 
         <div className="w-8 h-px bg-[var(--border)] my-1" />
 
-        {/* Panel toggles */}
+        {/* ── Panel toggles ── */}
         <div className="flex flex-col gap-1 w-full">
-          {panels.map((panel) => (
-            <ToolButton
+          {panels.map(panel => (
+            <ToolBtn
               key={panel.id}
               tool={panel}
               active={activePanel === panel.id}
@@ -167,7 +166,7 @@ export function LeftToolbar({ activePanel, onPanelToggle }: LeftToolbarProps) {
   );
 }
 
-function ToolButton({ tool, active, onClick }: { tool: ToolItem; active: boolean; onClick: () => void }) {
+function ToolBtn({ tool, active, onClick }: { tool: ToolItem; active: boolean; onClick: () => void }) {
   return (
     <Tooltip.Root>
       <Tooltip.Trigger asChild>

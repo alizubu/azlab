@@ -13,14 +13,18 @@ export function RightPanel() {
   const { activeTool } = useToolStore();
   const { selectedIds, fabricCanvas } = useCanvasStore();
 
-  // Determine what to show
-  const selectedObj = selectedIds.length > 0 && fabricCanvas
-    ? fabricCanvas.getActiveObject()
-    : null;
+  // Safely get selected object type
+  let selectedType: string | null = null;
+  if (selectedIds.length > 0 && fabricCanvas) {
+    try {
+      const obj = fabricCanvas.getActiveObject?.();
+      selectedType = obj?.type ?? null;
+    } catch { /* ignore */ }
+  }
 
-  const showTypography = activeTool === 'text' || selectedObj?.type === 'i-text';
-  const showImagePanel = selectedObj?.type === 'image';
-  const showPanel = showTypography || showImagePanel;
+  const showTypography = activeTool === 'text' || selectedType === 'i-text';
+  const showImagePanel = selectedType === 'image';
+  const showPanel      = showTypography || showImagePanel;
 
   return (
     <AnimatePresence>
