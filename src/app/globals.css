@@ -1,8 +1,23 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-/* ─── AZLab Design Tokens ─────────────────────────────────────────────────── */
+@source "../**/*.{ts,tsx}";
+
+@theme {
+  --color-accent-primary: #7c3aed;
+  --color-accent-secondary: #06b6d4;
+  --color-bg-base: #0a0a0f;
+  --color-bg-surface: #13131a;
+  --color-text-primary: #f8fafc;
+  --color-text-muted: #64748b;
+  --color-text-subtle: #94a3b8;
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-border-strong: rgba(255, 255, 255, 0.15);
+}
+
+/* ─── AZLab Design Tokens (CSS Variables fallback) ────────────────────────── */
 :root {
-  /* Dark mode defaults */
   --bg-base: #0a0a0f;
   --bg-surface: #13131a;
   --bg-panel: rgba(255, 255, 255, 0.04);
@@ -55,6 +70,8 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow: hidden;
+  /* Verification style: if CSS loads, background will be at least dark */
+  background: #0a0a0f !important;
 }
 
 /* ─── Emoji Rendering ─────────────────────────────────────────────────────── */
