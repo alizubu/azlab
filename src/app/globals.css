@@ -1,22 +1,7 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Tailwind v4 — single import replaces @tailwind base/components/utilities */
+@import "tailwindcss";
 
-@source "../**/*.{ts,tsx}";
-
-@theme {
-  --color-accent-primary: #7c3aed;
-  --color-accent-secondary: #06b6d4;
-  --color-bg-base: #0a0a0f;
-  --color-bg-surface: #13131a;
-  --color-text-primary: #f8fafc;
-  --color-text-muted: #64748b;
-  --color-text-subtle: #94a3b8;
-  --color-border: rgba(255, 255, 255, 0.08);
-  --color-border-strong: rgba(255, 255, 255, 0.15);
-}
-
-/* ─── AZLab Design Tokens (CSS Variables fallback) ────────────────────────── */
+/* ─── AZLab Design Tokens ─────────────────────────────────────────────────── */
 :root {
   --bg-base: #0a0a0f;
   --bg-surface: #13131a;
@@ -32,11 +17,6 @@
   --border-strong: rgba(255, 255, 255, 0.15);
   --shadow-soft: 0 4px 24px rgba(124, 58, 237, 0.15);
   --shadow-glow: 0 0 40px rgba(124, 58, 237, 0.3);
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
-  --radius-full: 9999px;
 }
 
 [data-theme="light"] {
@@ -53,9 +33,7 @@
 }
 
 /* ─── Base Reset ──────────────────────────────────────────────────────────── */
-*, *::before, *::after {
-  box-sizing: border-box;
-}
+*, *::before, *::after { box-sizing: border-box; }
 
 html, body {
   height: 100%;
@@ -70,18 +48,16 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow: hidden;
-  /* Verification style: if CSS loads, background will be at least dark */
-  background: #0a0a0f !important;
 }
 
-/* ─── Emoji Rendering ─────────────────────────────────────────────────────── */
+/* ─── Emoji ───────────────────────────────────────────────────────────────── */
 .emoji-char {
   font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif !important;
   font-style: normal !important;
   font-weight: normal !important;
 }
 
-/* ─── Glassmorphism Utilities ─────────────────────────────────────────────── */
+/* ─── Glassmorphism ───────────────────────────────────────────────────────── */
 .glass {
   background: var(--bg-panel);
   backdrop-filter: blur(20px);
@@ -90,7 +66,7 @@ body {
 }
 
 .glass-strong {
-  background: rgba(19, 19, 26, 0.85);
+  background: rgba(19, 19, 26, 0.92);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border: 1px solid var(--border-strong);
@@ -103,66 +79,21 @@ body {
   border: 1px solid var(--border);
 }
 
-/* ─── Scrollbar Styling ───────────────────────────────────────────────────── */
-::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
-  border-radius: 2px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
+/* ─── Scrollbar ───────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
 
-/* ─── Canvas Workspace ────────────────────────────────────────────────────── */
+/* ─── Canvas workspace ────────────────────────────────────────────────────── */
 .canvas-workspace {
   background-color: #1a1a2e;
   background-image:
-    radial-gradient(circle at 25% 25%, rgba(124, 58, 237, 0.05) 0%, transparent 50%),
-    radial-gradient(circle at 75% 75%, rgba(6, 182, 212, 0.05) 0%, transparent 50%);
+    radial-gradient(circle at 25% 25%, rgba(124,58,237,0.06) 0%, transparent 50%),
+    radial-gradient(circle at 75% 75%, rgba(6,182,212,0.06) 0%, transparent 50%);
 }
 
-.canvas-checkerboard {
-  background-image:
-    linear-gradient(45deg, #1e1e2e 25%, transparent 25%),
-    linear-gradient(-45deg, #1e1e2e 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, #1e1e2e 75%),
-    linear-gradient(-45deg, transparent 75%, #1e1e2e 75%);
-  background-size: 20px 20px;
-  background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
-  background-color: #181825;
-}
-
-/* ─── Panel Animations ────────────────────────────────────────────────────── */
-.panel-slide-right {
-  animation: slideInRight 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.panel-slide-left {
-  animation: slideInLeft 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.panel-slide-up {
-  animation: slideInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@keyframes slideInRight {
-  from { transform: translateX(100%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
-}
-@keyframes slideInLeft {
-  from { transform: translateX(-100%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
-}
-@keyframes slideInUp {
-  from { transform: translateY(100%); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
-
-/* ─── Gradient Text ───────────────────────────────────────────────────────── */
+/* ─── Gradient text ───────────────────────────────────────────────────────── */
 .gradient-text {
   background: var(--accent-gradient);
   -webkit-background-clip: text;
@@ -170,40 +101,30 @@ body {
   background-clip: text;
 }
 
-/* ─── Shimmer Effect ──────────────────────────────────────────────────────── */
+/* ─── Shimmer ─────────────────────────────────────────────────────────────── */
 @keyframes shimmer {
-  0% { background-position: -200% center; }
-  100% { background-position: 200% center; }
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
 }
 .shimmer {
-  background: linear-gradient(
-    90deg,
-    rgba(255,255,255,0.05) 0%,
-    rgba(255,255,255,0.15) 50%,
-    rgba(255,255,255,0.05) 100%
-  );
+  background: linear-gradient(90deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.05) 100%);
   background-size: 200% auto;
   animation: shimmer 2s linear infinite;
 }
 
-/* ─── Focus Styles ────────────────────────────────────────────────────────── */
-:focus-visible {
-  outline: 2px solid var(--accent-primary);
-  outline-offset: 2px;
-}
+/* ─── Slide animations ────────────────────────────────────────────────────── */
+@keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+@keyframes slideInLeft  { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+@keyframes slideInUp    { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-/* ─── Selection ───────────────────────────────────────────────────────────── */
-::selection {
-  background: rgba(124, 58, 237, 0.3);
-  color: var(--text-primary);
-}
+/* ─── Focus ───────────────────────────────────────────────────────────────── */
+:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 2px; }
+::selection { background: rgba(124,58,237,0.3); color: var(--text-primary); }
 
-/* ─── Tooltip ─────────────────────────────────────────────────────────────── */
-[data-radix-popper-content-wrapper] {
-  z-index: 9999 !important;
-}
+/* ─── Radix tooltip z-index ───────────────────────────────────────────────── */
+[data-radix-popper-content-wrapper] { z-index: 9999 !important; }
 
-/* ─── Range Input ─────────────────────────────────────────────────────────── */
+/* ─── Range input ─────────────────────────────────────────────────────────── */
 input[type="range"] {
   -webkit-appearance: none;
   appearance: none;
@@ -211,89 +132,47 @@ input[type="range"] {
   border-radius: 2px;
   background: rgba(255,255,255,0.1);
   outline: none;
+  cursor: pointer;
 }
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
-  appearance: none;
-  width: 14px;
-  height: 14px;
+  width: 14px; height: 14px;
   border-radius: 50%;
   background: var(--accent-primary);
   cursor: pointer;
-  box-shadow: 0 0 6px rgba(124, 58, 237, 0.5);
+  box-shadow: 0 0 6px rgba(124,58,237,0.5);
   transition: transform 0.15s ease;
 }
-input[type="range"]::-webkit-slider-thumb:hover {
-  transform: scale(1.2);
-}
+input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
 
-/* ─── Number Input ────────────────────────────────────────────────────────── */
+/* ─── Number input — hide spinners ───────────────────────────────────────── */
 input[type="number"]::-webkit-inner-spin-button,
-input[type="number"]::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
+input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 
-/* ─── Fabric.js Canvas ────────────────────────────────────────────────────── */
-.canvas-container {
-  position: relative !important;
-}
-
-/* ─── Layer drag ghost ────────────────────────────────────────────────────── */
-.layer-drag-ghost {
-  opacity: 0.5;
-  background: rgba(124, 58, 237, 0.2);
-  border: 1px solid var(--accent-primary);
-  border-radius: var(--radius-sm);
-}
-
-/* ─── Color swatch ────────────────────────────────────────────────────────── */
-.color-swatch {
-  width: 20px;
-  height: 20px;
-  border-radius: 4px;
-  border: 1px solid rgba(255,255,255,0.15);
-  cursor: pointer;
-  transition: transform 0.15s ease;
-}
-.color-swatch:hover {
-  transform: scale(1.1);
-}
+/* ─── Fabric canvas container ─────────────────────────────────────────────── */
+.canvas-container { position: relative !important; }
 
 /* ─── Toolbar button ──────────────────────────────────────────────────────── */
 .tool-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-sm);
+  width: 36px; height: 36px;
+  border-radius: 6px;
   border: none;
   background: transparent;
   color: var(--text-muted);
   cursor: pointer;
   transition: all 0.15s ease;
 }
-.tool-btn:hover {
-  background: var(--bg-panel-hover);
-  color: var(--text-primary);
-}
-.tool-btn.active {
-  background: rgba(124, 58, 237, 0.2);
-  color: var(--accent-primary);
-}
+.tool-btn:hover { background: var(--bg-panel-hover); color: var(--text-primary); }
+.tool-btn.active { background: rgba(124,58,237,0.2); color: var(--accent-primary); }
 
-/* ─── Accordion ───────────────────────────────────────────────────────────── */
-[data-state="open"] .accordion-chevron {
-  transform: rotate(180deg);
-}
-.accordion-chevron {
-  transition: transform 0.2s ease;
-}
+/* ─── Accordion chevron ───────────────────────────────────────────────────── */
+[data-state="open"] .accordion-chevron { transform: rotate(180deg); }
+.accordion-chevron { transition: transform 0.2s ease; }
 
 /* ─── Mobile ──────────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
-  body {
-    overflow: hidden;
-  }
+  body { overflow: hidden; }
 }
